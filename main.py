@@ -251,6 +251,9 @@ def download_approved():
     visits = db.query(Visit).filter(Visit.approved == True).all()
     db.close()
 
+    if not visits:
+        return HTMLResponse(content="<p>No approved visits to download.</p>")
+    
     db = pd.DataFrame([{
         "ID": v.id,
         "Nurse": v.nurse_name,
@@ -258,10 +261,11 @@ def download_approved():
         "Date": v.date,
         "Hours": v.hours,
         "Mileage": v.mileage,
-        "Notes": v.notes
+        "Notes": v.notes,
+        "Approved At": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     } for v in visits]) 
 
-    filrname = "approved_visits.xlsx"
+    filename = "/tmp/approved_visits.xlsx"
     db.to_excel(filename, index=False)
 
     return FileResponse(
