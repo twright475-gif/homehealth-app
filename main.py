@@ -2,17 +2,44 @@ from fastapi import FastAPI, Form
 from database import engine, SessionLocal
 from models import Base, Visit
 from fastapi.responses import HTMLResponse, RedirectResponse
-
+from datetime import datetime
+import pandas as pd
 
 app = FastAPI()
 
 # This creates the visits table in SQLite
 Base.metadata.create_all(bind=engine)
 
-
-from fastapi.responses import HTMLResponse
-
+# Login page
 @app.get("/", response_class=HTMLResponse)
+def login_page(msg: str = ""):
+    html = ""
+    if msg:
+        html += f"<p style='color: red; font-weight: bold;'>{msg}</p>"
+    html += """
+    <h2>Login</h2>
+    <form action="/login" method="post">
+        name: <input name="name"><br><br>
+        Role:
+        <select name="role">
+            <option value="nurse">Nurse</option>
+            <option value="admin">Admin</option>
+        </select><br><br>
+        <button type="submit">Enter</button>
+    </form>
+    """
+    return HTMLResponse(content=html)
+
+@app.post("/login")
+def login_submit(name: str = Form(...), role: str = Form(...)):
+    if role == "nurse":
+        return RedirectResponse(url="/?msg=Welcome+Nurse+" + name + "!", status_code=303)
+    elif role == "admin":
+        return RedirectResponse(url="/admin", status_code=303)
+    else:
+        return RedirectResponse(url="/login?msg=Invalid+role", status_code=303)
+
+@app.get("/nurse", response_class=HTMLResponse)
 def form(msg: str = ""):  # add optional msg parameter
     html = ""
     if msg:
@@ -96,8 +123,7 @@ def admin_page():
     return html
 
 
-from datetime import datetime
-import pandas as pd
+
 
 @app.post("/approve/{visit_id}")
 def approve_visit(visit_id: int):
