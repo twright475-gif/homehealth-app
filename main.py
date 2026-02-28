@@ -12,76 +12,119 @@ app = FastAPI()
 # Simple professional CSS styling
 STYLE = """
 <style>
+/* Global Body */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f6f9;
-    margin: 40px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f4f8;
+    margin: 0;
+    padding: 0;
 }
 
+/* Container Card */
+.card {
+    background: #ffffff;
+    margin: 40px auto;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    max-width: 600px;
+}
+
+/* Headings */
 h2 {
     color: #1f4e79;
+    text-align: center;
+    margin-bottom: 20px;
 }
 
+/* Forms */
 form {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    width: 400px;
-    box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
 }
 
-input, select {
+input, select, textarea {
     width: 100%;
-    padding: 8px;
-    margin-top: 5px;
+    padding: 10px;
     margin-bottom: 15px;
-    border-radius: 4px;
+    border-radius: 6px;
     border: 1px solid #ccc;
+    font-size: 1rem;
 }
 
+textarea {
+    resize: vertical;
+}
+
+/* Buttons */
 button {
     background-color: #1f4e79;
-    color: white;
-    padding: 8px 12px;
+    color: #fff;
+    font-weight: bold;
+    padding: 12px;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
+    transition: 0.3s;
 }
 
 button:hover {
     background-color: #163a5f;
 }
 
-table {
-    width: 100%;
-    background: white;
-    border-collapse: collapse;
-    box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
-}
-
-th {
-    background-color: #1f4e79;
-    color: white;
-    padding: 10px;
-}
-
-td {
-    padding: 8px;
-    text-align: center;
-}
-
-tr:nth-child(even) {
-    background-color: #f2f2f2;
-}
-
+/* Success/Error messages */
 .success {
     color: green;
     font-weight: bold;
+    text-align: center;
+    margin-bottom: 15px;
 }
 
 .error {
     color: red;
     font-weight: bold;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+/* Admin Table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.05);
+    background: #ffffff;
+}
+
+th, td {
+    padding: 12px;
+    text-align: center;
+}
+
+th {
+    background-color: #1f4e79;
+    color: #ffffff;
+}
+
+tr:nth-child(even) {
+    background-color: #f8faff;
+}
+
+tr:hover {
+    background-color: #e3f2fd;
+}
+
+.action-form {
+    margin: 0;
+}
+
+.download-button {
+    margin-top: 20px;
+    display: block;
+    width: 220px;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
 }
 </style>
 """
@@ -92,22 +135,34 @@ Base.metadata.create_all(bind=engine)
 # Login page
 @app.get("/", response_class=HTMLResponse)
 def login_page(msg: str = ""):
-    html = STYLE
-    if msg:
-        html += f"<p style='color: red; font-weight: bold;'>{msg}</p>"
-    html += """
+    html = f"""
+    <html>
+    <head>
+    {STYLE}
+    </head>
+    <body>
+    <div style="display:flex; justify-content:center; align-items:center; min-height:100vh;">
+    <div class="card">
     <h2>Login</h2>
-    <form action="/login" method="post">
-        name: <input name="name"><br><br>
-        Role:
-        <select name="role">
-            <option value="nurse">Nurse</option>
-            <option value="admin">Admin</option>
-        </select><br><br>
-        <button type="submit">Enter</button>
-    </form>
     """
-    return HTMLResponse(content=html)
+    if msg:
+        html += f"<p class='error'>{msg}</p>"
+        
+    html += """
+<form action="/login" method="post">
+    Name: <input name="name" placeholder="Enter your name"><br>
+    Role:
+    <select name="role">
+        <option value="nurse">Nurse</option>
+        <option value="admin">Admin</option>
+    </select><br>
+    <button type="submit">Enter</button>
+</form>
+</div>
+</div>
+</body>
+</html>
+"""
 
 @app.post("/login")
 def login_submit(name: str = Form(...), role: str = Form(...)):
@@ -120,24 +175,106 @@ def login_submit(name: str = Form(...), role: str = Form(...)):
 
 @app.get("/nurse", response_class=HTMLResponse)
 def form(msg: str = ""):  # add optional msg parameter
-    html = ""
+    html = f"""
+<html>
+<head>
+{STYLE}
+</head>
+<body>
+"""
     if msg:
-        html += f"<p style='color: green; font-weight: bold;'>{msg}</p>"
+        html += f"<p class='success'>{msg}</p>"
 
     html += """
-    <h2>Submit Visit</h2>
-    <form action="/submit" method="post">
-        Nurse Name: <input name="nurse"><br><br>
-        Patient Name: <input name="patient"><br><br>
-        Date: <input name="date"><br><br>
-        Hours: <input name="hours"><br><br>
-        Mileage: <input name="mileage"><br><br>
-        Notes: <input name="notes"><br><br>
-        <button type="submit">Submit</button>
-    </form>
-    """
-    return HTMLResponse(content=html)
+<div style="display:flex; justify-content:center; align-items:center; min-height:100vh;">
+<div class="card">
+<h2>Submit Visit</h2>
+"""
+if msg:
+    html += f"<p class='success'>{msg}</p>"
 
+html += """
+<form action="/submit" method="post">
+    Nurse Name: <input name="nurse" placeholder="Enter your name"><br>
+    Patient Name: <input name="patient" placeholder="Enter patient name"><br>
+    Date: <input name="date" type="date"><br>
+    Hours: <input name="hours" type="number" step="0.1"><br>
+    Mileage: <input name="mileage" type="number" step="0.1"><br>
+    Notes: <textarea name="notes" placeholder="Optional notes"></textarea><br>
+    <button type="submit">Submit</button>
+</form>
+</div>
+</div>
+"""
+
+@app.get("/admin", response_class=HTMLResponse)
+def admin_page():
+    db = SessionLocal()
+    visits = db.query(Visit).all()
+    db.close()
+
+    html = f"""
+<html>
+<head>
+{STYLE}
+</head>
+<body>
+<!-- Flex container to center card -->
+<div style="display:flex; justify-content:center; align-items:flex-start; padding:40px;">
+  <!-- Card container -->
+  <div class="card" style="width:100%; max-width:1200px;">
+    <h2>Admin Dashboard</h2>
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>Nurse</th>
+        <th>Patient</th>
+        <th>Date</th>
+        <th>Hours</th>
+        <th>Mileage</th>
+        <th>Notes</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+"""
+
+# --- Keep this loop exactly as you had it ---
+for v in visits:
+    html += "<tr>"
+    html += f"<td>{v.id}</td>"
+    html += f"<td>{v.nurse_name}</td>"
+    html += f"<td>{v.patient_name}</td>"
+    html += f"<td>{v.date}</td>"
+    html += f"<td>{v.hours}</td>"
+    html += f"<td>{v.mileage}</td>"
+    html += f"<td>{v.notes}</td>"
+
+    if v.approved:
+        html += "<td>Approved</td>"
+        html += "<td>—</td>"
+    else:
+        html += "<td>Pending</td>"
+        html += f"""
+        <td>
+        <form class='action-form' method='post' action='/approve/{v.id}'>
+        <button type='submit'>Approve</button>
+        </form>
+        </td>
+        """
+
+    html += "</tr>"
+
+# --- Finish the HTML ---
+html += """
+    </table>
+    <form class="download-button" action="/download-approved" method="get">
+      <button type="submit">Download Approved Visits</button>
+    </form>
+  </div> <!-- end card -->
+</div> <!-- end flex container -->
+</body>
+</html>
+"""
 
 @app.post("/submit")
 def submit_visit(
@@ -164,54 +301,7 @@ def submit_visit(
     db.close()
 
     # Redirects back to blank submission form
-    return RedirectResponse(url="/?msg=Visit+submitted+successfully!", status_code=303)
-
-@app.get("/admin", response_class=HTMLResponse)
-def admin_page():
-    db = SessionLocal()
-    visits = db.query(Visit).all()
-    db.close()
-
-    # Build HTML table
-    html = "<h2>All Visits</h2>"
-    html += "<table border='1' style='border-collapse: collapse;'>"
-    html += "<tr><th>ID</th><th>Nurse</th><th>Patient</th><th>Date</th><th>Hours</th><th>Mileage</th><th>Notes</th><th>Approved</th></tr>"
-
-    
-    for v in visits:
-        html += f"<tr>"
-        html += f"<td>{v.id}</td>"
-        html += f"<td>{v.nurse_name}</td>"
-        html += f"<td>{v.patient_name}</td>"
-        html += f"<td>{v.date}</td>"
-        html += f"<td>{v.hours}</td>"
-        html += f"<td>{v.mileage}</td>"
-        html += f"<td>{v.notes}</td>"
-        html += f"<td>{v.approved}</td>"
-
-    # Add Approve button if not approved
-        if not v.approved:
-            html += f"<td><form method='post' action='/approve/{v.id}'>"
-            html += f"<button type='submit'>Approve</button>"
-            html += f"</form></td>"
-        else:
-            html += f"<td>Approved</td>"
-
-        html += f"</tr>"
-
-    html += "</table>"
-
-    # Add Download button below the table
-    html += """
-    <br><br>
-    <form action="/download-approved" method="get">
-        <button type="submit">Download Approved Visits</button>
-    </form>
-    """
-    
-    return html
-
-
+    return RedirectResponse(url="/nurse?msg=Visit+submitted+successfully!", status_code=303)
 
 
 @app.post("/approve/{visit_id}")
