@@ -1,5 +1,4 @@
 from fileinput import filename
-
 from fastapi import FastAPI, Form
 from database import engine, SessionLocal
 from models import Base, Visit
@@ -137,9 +136,7 @@ Base.metadata.create_all(bind=engine)
 def login_page(msg: str = ""):
     html = f"""
     <html>
-    <head>
-    {STYLE}
-    </head>
+    <head>{STYLE}</head>
     <body>
     <div style="display:flex; justify-content:center; align-items:center; min-height:100vh;">
     <div class="card">
@@ -149,20 +146,21 @@ def login_page(msg: str = ""):
         html += f"<p class='error'>{msg}</p>"
         
     html += """
-<form action="/login" method="post">
-    Name: <input name="name" placeholder="Enter your name"><br>
-    Role:
-    <select name="role">
-        <option value="nurse">Nurse</option>
-        <option value="admin">Admin</option>
-    </select><br>
-    <button type="submit">Enter</button>
-</form>
-</div>
-</div>
-</body>
-</html>
-"""
+    <form action="/login" method="post">
+        Name: <input name="name" placeholder="Enter your name"><br>
+        Role:
+        <select name="role">
+            <option value="nurse">Nurse</option>
+            <option value="admin">Admin</option>
+        </select><br>
+        <button type="submit">Enter</button>
+    </form>
+    </div>
+    </div>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html)
 
 @app.post("/login")
 def login_submit(name: str = Form(...), role: str = Form(...)):
@@ -176,36 +174,30 @@ def login_submit(name: str = Form(...), role: str = Form(...)):
 @app.get("/nurse", response_class=HTMLResponse)
 def form(msg: str = ""):  # add optional msg parameter
     html = f"""
-<html>
-<head>
-{STYLE}
-</head>
-<body>
-"""
+    <html>
+    <head>{STYLE}</head>
+    <body>
+    <div style="display:flex; justify-content:center; align-items:center; min-height:100vh;">
+    <div class="card">
+    <h2>Submit Visit</h2>
+    """
     if msg:
         html += f"<p class='success'>{msg}</p>"
 
     html += """
-<div style="display:flex; justify-content:center; align-items:center; min-height:100vh;">
-<div class="card">
-<h2>Submit Visit</h2>
-"""
-if msg:
-    html += f"<p class='success'>{msg}</p>"
-
-html += """
-<form action="/submit" method="post">
-    Nurse Name: <input name="nurse" placeholder="Enter your name"><br>
-    Patient Name: <input name="patient" placeholder="Enter patient name"><br>
-    Date: <input name="date" type="date"><br>
-    Hours: <input name="hours" type="number" step="0.1"><br>
-    Mileage: <input name="mileage" type="number" step="0.1"><br>
-    Notes: <textarea name="notes" placeholder="Optional notes"></textarea><br>
-    <button type="submit">Submit</button>
-</form>
-</div>
-</div>
-"""
+    <form action="/submit" method="post">
+        Nurse Name: <input name="nurse" placeholder="Enter your name"><br>
+        Patient Name: <input name="patient" placeholder="Enter patient name"><br>
+        Date: <input name="date" type="date"><br>
+        Hours: <input name="hours" type="number" step="0.1"><br>
+        Mileage: <input name="mileage" type="number" step="0.1"><br>
+        Notes: <textarea name="notes" placeholder="Optional notes"></textarea><br>
+        <button type="submit">Submit</button>
+    </form>
+    </div>
+    </div>
+    """
+    return HTMLResponse(content=html)
 
 @app.get("/admin", response_class=HTMLResponse)
 def admin_page():
@@ -214,16 +206,11 @@ def admin_page():
     db.close()
 
     html = f"""
-<html>
-<head>
-{STYLE}
-</head>
-<body>
-<!-- Flex container to center card -->
-<div style="display:flex; justify-content:center; align-items:flex-start; padding:40px;">
-  <!-- Card container -->
-  <div class="card" style="width:100%; max-width:1200px;">
-    <h2>Admin Dashboard</h2>
+    <html>
+    <head>{STYLE}</head>
+    <body>
+    <div style="padding:40px; max-width:1000px; margin:auto;">
+    <h2 style="text-align:center;">Admin Dashboard</h2>
     <table>
       <tr>
         <th>ID</th>
@@ -236,45 +223,47 @@ def admin_page():
         <th>Status</th>
         <th>Action</th>
       </tr>
-"""
+    """
 
-# --- Keep this loop exactly as you had it ---
-for v in visits:
-    html += "<tr>"
-    html += f"<td>{v.id}</td>"
-    html += f"<td>{v.nurse_name}</td>"
-    html += f"<td>{v.patient_name}</td>"
-    html += f"<td>{v.date}</td>"
-    html += f"<td>{v.hours}</td>"
-    html += f"<td>{v.mileage}</td>"
-    html += f"<td>{v.notes}</td>"
+    # Loop through visits to generate table rows
+    for v in visits:
+        html += "<tr>"
+        html += f"<td>{v.id}</td>"
+        html += f"<td>{v.nurse_name}</td>"
+        html += f"<td>{v.patient_name}</td>"
+        html += f"<td>{v.date}</td>"
+        html += f"<td>{v.hours}</td>"
+        html += f"<td>{v.mileage}</td>"
+        html += f"<td>{v.notes}</td>"
 
-    if v.approved:
-        html += "<td>Approved</td>"
-        html += "<td>—</td>"
-    else:
-        html += "<td>Pending</td>"
-        html += f"""
-        <td>
-        <form class='action-form' method='post' action='/approve/{v.id}'>
-        <button type='submit'>Approve</button>
-        </form>
-        </td>
-        """
+        if v.approved:
+            html += "<td>Approved</td>"
+            html += "<td>—</td>"
+        else:
+            html += "<td>Pending</td>"
+            html += f"""
+            <td>
+                <form class='action-form' method='post' action='/approve/{v.id}'>
+                    <button type='submit'>Approve</button>
+                </form>
+            </td>
+            """
+        html += "</tr>"
 
-    html += "</tr>"
-
-# --- Finish the HTML ---
-html += """
+    # Close table and add download button
+    html += """
     </table>
-    <form class="download-button" action="/download-approved" method="get">
-      <button type="submit">Download Approved Visits</button>
-    </form>
-  </div> <!-- end card -->
-</div> <!-- end flex container -->
-</body>
-</html>
-"""
+    <div style="text-align:center; margin-top:20px;">
+        <form class="download-button" action="/download-approved" method="get">
+            <button type="submit">Download Approved Visits</button>
+        </form>
+    </div>
+    </div>
+    </body>
+    </html>
+    """
+
+    return HTMLResponse(content=html)
 
 @app.post("/submit")
 def submit_visit(
@@ -286,7 +275,6 @@ def submit_visit(
     notes: str = Form(...)
 ):
     db = SessionLocal()
-
     new_visit = Visit(
         nurse_name=nurse,
         patient_name=patient,
@@ -295,7 +283,6 @@ def submit_visit(
         mileage=mileage,
         notes=notes
     )
-
     db.add(new_visit)
     db.commit()
     db.close()
