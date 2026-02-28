@@ -1,3 +1,5 @@
+from fileinput import filename
+
 from fastapi import FastAPI, Form
 from database import engine, SessionLocal
 from models import Base, Visit
@@ -265,8 +267,15 @@ def download_approved():
         "Approved At": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     } for v in visits]) 
 
-    filename = "/tmp/approved_visits.xlsx"
-    db.to_excel(filename, index=False)
+    filename = "approved_visits.xlsx"  # your persistent Excel file in project folder
+# Read existing file to preserve previous approvals
+    try:
+        existing_df = pd.read_excel(filename)
+        df = pd.concat([existing_df, df], ignore_index=True)
+    except FileNotFoundError:
+        pass
+
+    df.to_excel(filename, index=False)
 
     return FileResponse(
         filename,
