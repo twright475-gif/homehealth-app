@@ -33,7 +33,7 @@ def login_page(msg: str = ""):
 @app.post("/login")
 def login_submit(name: str = Form(...), role: str = Form(...)):
     if role == "nurse":
-        return RedirectResponse(url="/?msg=Welcome+Nurse+" + name + "!", status_code=303)
+        return RedirectResponse(url=f"/nurse?msg=Welcome+Nurse+{name}!", status_code=303)
     elif role == "admin":
         return RedirectResponse(url="/admin", status_code=303)
     else:
