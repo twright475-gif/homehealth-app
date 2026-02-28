@@ -246,17 +246,17 @@ def approve_visit(visit_id: int):
     
 
 from fastapi.responses import FileResponse
+import os
 
 @app.get("/download-approved")
 def download_approved():
-    db = SessionLocal()
-    visits = db.query(Visit).filter(Visit.approved == True).all()
-    db.close()
-
+    visits = SessionLocal().query(Visit).filter(Visit.approved == True).all()
+    
     if not visits:
         return HTMLResponse(content="<p>No approved visits to download.</p>")
     
-    db = pd.DataFrame([{
+    # Create a new DataFrame from current approved visits
+    new_df = pd.DataFrame([{
         "ID": v.id,
         "Nurse": v.nurse_name,
         "Patient": v.patient_name,
@@ -265,21 +265,22 @@ def download_approved():
         "Mileage": v.mileage,
         "Notes": v.notes,
         "Approved At": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    } for v in visits]) 
+    } for v in visits])
 
-    filename = "approved_visits.xlsx"  # your persistent Excel file in project folder
-# Read existing file to preserve previous approvals
-    try:
+    filename = "approved_visits.xlsx"
+
+    # Read existing file and append new data, if file exists
+    if os.path.exists(filename):
         existing_df = pd.read_excel(filename)
-        df = pd.concat([existing_df, df], ignore_index=True)
-    except FileNotFoundError:
-        pass
+        df_to_save = pd.concat([existing_df, new_df], ignore_index=True)
+    else:
+        df_to_save = new_df
 
-    df.to_excel(filename, index=False)
+    # Save/overwrite the persistent Excel file
+    df_to_save.to_excel(filename, index=False)
 
     return FileResponse(
         filename,
-        media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         filename=filename
     )
-    
