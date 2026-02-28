@@ -26,7 +26,7 @@ body {
     padding: 30px;
     border-radius: 12px;
     box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-    max-width: 600px;
+    max-width: 850px;
 }
 
 /* Headings */
