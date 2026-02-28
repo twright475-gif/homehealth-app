@@ -7,13 +7,90 @@ import pandas as pd
 
 app = FastAPI()
 
+# Simple professional CSS styling
+STYLE = """
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f6f9;
+    margin: 40px;
+}
+
+h2 {
+    color: #1f4e79;
+}
+
+form {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 400px;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+}
+
+input, select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+button {
+    background-color: #1f4e79;
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #163a5f;
+}
+
+table {
+    width: 100%;
+    background: white;
+    border-collapse: collapse;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+}
+
+th {
+    background-color: #1f4e79;
+    color: white;
+    padding: 10px;
+}
+
+td {
+    padding: 8px;
+    text-align: center;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.success {
+    color: green;
+    font-weight: bold;
+}
+
+.error {
+    color: red;
+    font-weight: bold;
+}
+</style>
+"""
+
 # This creates the visits table in SQLite
 Base.metadata.create_all(bind=engine)
 
 # Login page
 @app.get("/", response_class=HTMLResponse)
 def login_page(msg: str = ""):
-    html = ""
+    html = STYLE
     if msg:
         html += f"<p style='color: red; font-weight: bold;'>{msg}</p>"
     html += """
@@ -98,6 +175,7 @@ def admin_page():
     html += "<table border='1' style='border-collapse: collapse;'>"
     html += "<tr><th>ID</th><th>Nurse</th><th>Patient</th><th>Date</th><th>Hours</th><th>Mileage</th><th>Notes</th><th>Approved</th></tr>"
 
+    
     for v in visits:
         html += f"<tr>"
         html += f"<td>{v.id}</td>"
@@ -120,6 +198,15 @@ def admin_page():
         html += f"</tr>"
 
     html += "</table>"
+
+    # Add Download button below the table
+    html += """
+    <br><br>
+    <form action="/download-approved" method="get">
+        <button type="submit">Download Approved Visits</button>
+    </form>
+    """
+    
     return html
 
 
@@ -154,4 +241,32 @@ def approve_visit(visit_id: int):
 
     db.close()
     return RedirectResponse(url="/admin", status_code=303)
+    
+
+from fastapi.responses import FileResponse
+
+@app.get("/download-approved")
+def download_approved():
+    db = SessionLocal()
+    visits = db.query(Visit).filter(Visit.approved == True).all()
+    db.close()
+
+    db = pd.DataFrame([{
+        "ID": v.id,
+        "Nurse": v.nurse_name,
+        "Patient": v.patient_name,
+        "Date": v.date,
+        "Hours": v.hours,
+        "Mileage": v.mileage,
+        "Notes": v.notes
+    } for v in visits]) 
+
+    filrname = "approved_visits.xlsx"
+    db.to_excel(filename, index=False)
+
+    return FileResponse(
+        filename,
+        media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        filename=filename
+    )
     
