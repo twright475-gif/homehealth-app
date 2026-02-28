@@ -125,6 +125,15 @@ tr:hover {
     margin-left: auto;
     margin-right: auto;
 }
+
+.secondary-btn {
+    background-color: #6c757d;
+    margin-bottom: 15px;
+}
+
+.secondary-btn:hover {
+    background-color: #545b62;
+}
 </style>
 """
 
@@ -179,6 +188,9 @@ def form(msg: str = ""):  # add optional msg parameter
     <body>
     <div style="display:flex; justify-content:center; align-items:center; min-height:100vh;">
     <div class="card">
+    <form action="/" method="get">
+        <button type="submit" class="secondary-btn">Back to Login</button>
+    </form>
     <h2>Submit Visit</h2>
     """
     if msg:
@@ -211,6 +223,9 @@ def admin_page():
     <body>
     <div style="padding:40px; max-width:1000px; margin:auto;">
     <h2 style="text-align:center;">Admin Dashboard</h2>
+    <form action="/" method="get" style="text-align:center; margin-bottom:20px;">
+        <button type="submit" class="secondary-btn">Back to Login</button>
+    </form>
     <table>
       <tr>
         <th>ID</th>
